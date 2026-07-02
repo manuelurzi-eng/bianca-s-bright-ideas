@@ -467,10 +467,20 @@ export function renderVals(ctx) {
   const screen = st.screen;
 
   const roleLabel = { pm: 'Project Manager', carlo: 'Head of Delivery', carla: 'Renewals & Account', exec: 'Founder / Exec' };
-  const entryPeople = m.USERS.map((u) => ({
+
+  // Un PM è "attivo" se compare come referente_diffusione su almeno un cliente con status "attivo".
+  // I ruoli fissi (carlo/carla/exec) restano sempre nella lista attiva.
+  const activePmIds = new Set();
+  (st.data?.clienti || m.CLIENTI).forEach((c) => {
+    if (c.status !== 'attivo') return;
+    (c.referenti || []).forEach((rid) => activePmIds.add(rid));
+  });
+  const toEntry = (u) => ({
     nome: u.nome, sub: u.sub, iniz: u.iniz, ruolo: roleLabel[u.ruolo] || u.sub,
     onClick: () => act.enter(u.id),
-  }));
+  });
+  const entryPeople = m.USERS.filter((u) => u.ruolo !== 'pm' || activePmIds.has(u.id)).map(toEntry);
+  const entryArchived = m.USERS.filter((u) => u.ruolo === 'pm' && !activePmIds.has(u.id)).map(toEntry);
 
   const people = m.USERS.map((u) => ({
     iniz: u.iniz, title: u.nome + ' · ' + u.sub, onClick: () => act.setRole(u.id),
