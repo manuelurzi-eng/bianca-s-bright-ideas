@@ -34,7 +34,7 @@ export default function App() {
     );
   }
 
-  if (vals.isEntry) return <Entry entryPeople={vals.entryPeople} />;
+  if (vals.isEntry) return <Entry entryPeople={vals.entryPeople} entryArchived={vals.entryArchived} />;
 
   return (
     <div style={wrap}>
