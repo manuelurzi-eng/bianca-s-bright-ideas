@@ -525,7 +525,7 @@ export function renderVals(ctx) {
     isDashboardPM: screen === 'dashboard', isScheda: screen === 'scheda',
     isCarlo: screen === 'carlo', isCarla: screen === 'carla', isExec: screen === 'exec',
     isAlert: screen === 'alert', isMatrice: screen === 'matrice',
-    me, nav, people, entryPeople, toast: st.toast,
+    me, nav, people, entryPeople, entryArchived, toast: st.toast,
     onExit: () => act.exitToEntry(),
     myAlerts, alertOpenCount: myOpenAlerts.length, alertEmpty: myAlerts.length === 0,
     scheda: buildScheda(ctx),
