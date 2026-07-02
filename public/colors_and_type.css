@@ -1,0 +1,371 @@
+/* ============================================================
+   LEVER PR — Colors & Type
+   Aligned to Brand Bible v3.0 (gen. 2026).
+   Halyard Display = primary licensed. Poppins = Google fallback.
+   ============================================================ */
+
+/* Poppins fallback (Google Fonts) — used when Halyard isn't available */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+/* ---------- Webfonts ---------- */
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Light.otf") format("opentype");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Book.otf") format("opentype");
+  font-weight: 350; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Regular.otf") format("opentype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Italic.otf") format("opentype");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Medium.otf") format("opentype");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-SemiBold.otf") format("opentype");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-BoldItalic.otf") format("opentype");
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Display";
+  src: url("./fonts/HalyardDisplay-Black.otf") format("opentype");
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Text";
+  src: url("./fonts/HalyardText-Light.otf") format("opentype");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Text";
+  src: url("./fonts/HalyardText-Regular.otf") format("opentype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Text";
+  src: url("./fonts/HalyardText-Italic.otf") format("opentype");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Text";
+  src: url("./fonts/HalyardText-Medium.otf") format("opentype");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Halyard Text";
+  src: url("./fonts/HalyardText-Bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+/* ---------- Color tokens ----------
+   Aligned to LEVER PR Brand Bible v3.0 (gen. 2026).
+   Hex values below are AUTHORITATIVE — do not invent variants.
+   ---------------------------------------- */
+:root {
+  /* === PRIMARY PALETTE — Profondo viola === */
+  --plum-950: #160C1D;   /* (derived) deep void / headers on dark */
+  --plum-900: #2B1A2E;   /* OFFICIAL · aubergine — logo, text, dark surface */
+  --plum-800: #2C1B34;   /* (derived) hover-up on plum surfaces */
+  --plum-700: #3A2545;   /* (derived) elevated plum surface */
+
+  /* === INDIGO / VIOLA — deep, signature === */
+  --indigo-900: #1A0A4D;   /* (derived) deepest indigo */
+  --indigo-800: #2A0E73;   /* (derived) primary CTA fill */
+  --indigo-700: #3D1C8F;   /* OFFICIAL · viola brand — CTA, dark accents */
+  --indigo-600: #5F3BF4;   /* OFFICIAL · viola acceso — accent / hero pop */
+
+  /* === LILAC — signature pastel accent === */
+  --lilac-500: #9A6EF0;   /* (derived) hover on lilac chips */
+  --lilac-400: #B48FF2;   /* OFFICIAL · lilac primary accent */
+  --lilac-300: #C6B4E2;   /* OFFICIAL · pastello (panels, soft bg) */
+  --lilac-200: #E8DCFD;   /* (derived) ultra-soft surface */
+  --lilac-100: #F4ECFE;   /* (derived) faintest tint */
+
+  /* === SECONDARY PALETTE — Pastello Lever ===
+     Per accenti dato/categoria, infografiche, divisione semantica.
+     Uso LIMITATO: max 1 colore secondario per artefatto. */
+  --blue-400:     #6F94FE;   /* OFFICIAL · pastello blu */
+  --green-400:    #63CF9B;   /* OFFICIAL · pastello verde / success-leaning */
+  --burgundy-700: #820F46;   /* OFFICIAL · burgundy / contrast deep */
+
+  /* === ACCENT — viola acceso family ===
+     Punti di attenzione. Uso MIRATO, raro. Mai come superficie estesa. */
+  --accent-purple:  #5F3BF4;   /* alias di indigo-600 — viola acceso */
+  --accent-magenta: #D556F4;   /* OFFICIAL · magenta */
+  --accent-yellow:  #E5BE1A;   /* OFFICIAL · giallo accent */
+
+  /* === GRAYSCALE — ufficiale === */
+  --gray-900: #000000;   /* OFFICIAL · puro nero */
+  --gray-700: #616161;   /* OFFICIAL · grigio scuro */
+  --gray-500: #838383;   /* OFFICIAL · grigio medio */
+  --gray-300: #D9D9D9;   /* OFFICIAL · grigio chiaro / divisori */
+  --white:    #FFFFFF;   /* OFFICIAL · bianco puro */
+
+  /* === NEUTRALS — superfici brand === */
+  --cream:    #EFEFEF;   /* OFFICIAL · superficie chiara primaria (off-white) */
+  --paper:    #F6F4F2;   /* (derived) warm paper variant */
+  --ink-700:  #4A3D55;   /* secondary text on light (derived plum-tinted) */
+  --ink-500:  #8478A0;   /* muted text on light */
+  --ink-400:  #A89BBE;   /* placeholder / very muted */
+  --ink-300:  #BCB3CC;   /* dividers on light */
+  --ink-200:  #E5E2EA;   /* card outlines subtle */
+
+  /* On-dark neutrals */
+  --on-dark-1:  #F1EDF6;   /* primary text on dark */
+  --on-dark-2:  #C8BDDE;   /* secondary text on dark */
+  --on-dark-3:  #8B7AAE;   /* muted on dark */
+  --line-dark:  rgba(241,237,246,0.14);
+
+  /* === GRADIENTI UFFICIALI — 9 combinazioni nominate dalla brand bible ===
+     Uso: hero, cover di slide, splash. Mai testo, mai bordi sottili. */
+  --gradient-1: linear-gradient(135deg, #2B1A2E 0%, #5F3BF4 100%);   /* @kind color */
+  --gradient-2: linear-gradient(135deg, #2B1A2E 0%, #3D1C8F 100%);   /* @kind color */
+  --gradient-3: linear-gradient(135deg, #3D1C8F 0%, #B48FF2 100%);   /* @kind color */
+  --gradient-4: linear-gradient(135deg, #C6B4E2 0%, #3D1C8F 100%);   /* @kind color */
+  --gradient-5: linear-gradient(135deg, #2B1A2E 0%, #6F94FE 100%);   /* @kind color */
+  --gradient-6: linear-gradient(135deg, #2B1A2E 0%, #D556F4 100%);   /* @kind color */
+  --gradient-7: linear-gradient(135deg, #EFEFEF 0%, #C6B4E2 100%);   /* @kind color */
+  --gradient-8: linear-gradient(135deg, #EFEFEF 0%, #3D1C8F 100%);   /* @kind color */
+  --gradient-9: linear-gradient(135deg, #EFEFEF 0%, #63CF9B 100%);   /* @kind color */
+
+  /* Semantic */
+  --success: var(--green-400);
+  --warning: var(--accent-yellow);
+  --danger:  var(--burgundy-700);
+
+  /* Surfaces (semantic) */
+  --bg:         var(--cream);
+  --bg-elev:    var(--white);
+  --bg-deep:    var(--plum-900);
+  --fg:         var(--plum-900);
+  --fg-muted:   var(--ink-700);
+  --accent:     var(--lilac-400);
+  --accent-deep:var(--indigo-700);   /* ufficiale = #3D1C8F */
+
+  /* === TYPE FAMILIES ===
+     Primary: Halyard Display (licensed) — titoli, body, tutto il copy brand.
+     Fallback Google Fonts ufficiale (brand bible): Poppins.
+     Halyard Text è la variante text-optimized per body lunghi. */
+  --font-display:  "Halyard Display", "Poppins", system-ui, sans-serif;
+  --font-text:     "Halyard Text", "Halyard Display", "Poppins", system-ui, sans-serif;
+  --font-fallback: "Poppins", system-ui, sans-serif;
+
+  /* === TYPE SCALE — Brand Bible Design System ===
+     Default weight = SEMIBOLD (600). Bold (700) solo per taglines / micro-label CTA.
+     Le coppie sotto sono size/line-height in px, mappate ai tier ufficiali. */
+  --t-display02:  68px;   /* @kind font */
+  --t-h1:         56px;   /* @kind font */
+  --t-h3:         40px;   /* @kind font */
+  --t-body-lg:    24px;   /* @kind font */
+  --t-body-sm:    16px;   /* @kind font */
+  --t-tagline:    20px;   /* @kind font */
+
+  /* === TYPE SCALE — Responsive headline (additional, for fluid contexts) === */
+  --t-display-xl: clamp(56px, 7vw, 112px);  /* @kind font */
+  --t-display:    clamp(44px, 5.2vw, 80px); /* @kind font */
+  --t-h2:         clamp(28px, 3vw, 44px);   /* @kind font */
+  --t-h4:         20px;   /* @kind font */
+  --t-body:       16px;   /* @kind font */
+  --t-caption:    12px;   /* @kind font */
+  --t-eyebrow:    13px;   /* @kind font */
+
+  /* Tracking & leading */
+  --lh-tight: 1.02;  /* @kind font */
+  --lh-snug:  1.12;  /* @kind font */
+  --lh-body:  1.45;  /* @kind font */
+  --ls-tight: -0.02em;
+  --ls-eyebrow: 0.14em;
+
+  /* Spacing scale (4-base) */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+  --s-9: 96px; --s-10: 128px;
+
+  /* Radii — rounded but architectural; pills for CTAs */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
+  --r-pill: 999px;
+
+  /* Shadows — restrained; brand is flat / high-contrast */
+  --shadow-sm:  0 1px 2px rgba(40,27,48,0.06);
+  --shadow-md:  0 8px 24px rgba(40,27,48,0.10);
+  --shadow-lg:  0 22px 60px -20px rgba(40,27,48,0.30);
+  --shadow-cta: 0 8px 22px -6px rgba(42,14,115,0.45);
+
+  /* Motion */
+  --ease: cubic-bezier(.22,.61,.36,1);  /* @kind other */
+  --dur-fast: 140ms;  /* @kind other */
+  --dur:      220ms;  /* @kind other */
+  --dur-slow: 420ms;  /* @kind other */
+}
+
+/* ---------- Semantic type classes ----------
+   Map to the official Brand Bible Design System.
+   Default WEIGHT for all class-driven type = 600 (Semibold).
+   Bold (700) reserved for taglines and uppercase CTA micro-label.
+   ----------------------------------------- */
+.font-display { font-family: var(--font-display); }
+.font-text    { font-family: var(--font-text); }
+
+/* Tagline / uppercase micro-label */
+.tagline {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-tagline);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+/* Eyebrow / micro-label (smaller than tagline, more typographic) */
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* OFFICIAL TIERS — Brand Bible Design System */
+.display02, .h-display02 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-display02);
+  line-height: calc(82 / 68);
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.h1-bible {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h1);
+  line-height: calc(57 / 56);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.h3-bible {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h3);
+  line-height: calc(43 / 40);
+  letter-spacing: -0.01em;
+}
+.body-large {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-body-lg);
+  line-height: calc(28 / 24);
+  color: var(--fg);
+}
+.body-small {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-body-sm);
+  line-height: calc(21 / 16);
+  color: var(--fg);
+}
+
+/* RESPONSIVE TIERS — for fluid hero contexts (deck billboard, full-bleed posters) */
+.display-xl, h1.display, .h-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-display-xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  color: var(--fg);
+  text-wrap: balance;
+}
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-display);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+}
+
+/* H1/H2/H3 element defaults — also align to Semibold per bible */
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h1);
+  line-height: calc(57 / 56);
+  letter-spacing: -0.015em;
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h2);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h3);
+  line-height: calc(43 / 40);
+}
+h4, .h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h4);
+  line-height: 1.3;
+}
+p, .p {
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+.lead {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: var(--t-body-lg);
+  line-height: 1.5;
+}
+.small  { font-size: var(--t-body-sm); }
+.caption { font-size: var(--t-caption); color: var(--fg-muted); }
+
+/* Highlight pattern: a key word inside a headline */
+.hl-lilac    { color: var(--lilac-400); }
+.hl-indigo   { color: var(--indigo-700); }
+.hl-accent   { color: var(--accent-purple); }
+
+/* Defaults */
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--lilac-400); color: var(--plum-900); }

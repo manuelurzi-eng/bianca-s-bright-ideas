@@ -1,0 +1,80 @@
+
+/* ============================================================
+   Cockpit — classi data-driven prese 1:1 dal prototipo Claude Design
+   (Cockpit.dc.html <style>). Il layout resta inline-style nei componenti;
+   queste classi portano solo il tono legato al dato (stato, livello alert…).
+   I colori sono le CSS variables definite in public/colors_and_type.css.
+   ============================================================ */
+
+body {
+  margin: 0;
+  background: var(--cream);
+  font-family: var(--font-display);
+  color: var(--plum-900);
+  -webkit-font-smoothing: antialiased;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-300);
+  border-radius: 999px;
+  border: 2px solid var(--cream);
+}
+input, select, button, textarea { font-family: var(--font-display); }
+
+@keyframes ck-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ck-toast { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* tone helpers */
+.bg-ok { background: var(--green-400); } .bg-warn { background: var(--accent-yellow); } .bg-bad { background: var(--burgundy-700); }
+.bg-off { background: var(--ink-400); } .bg-muted { background: var(--ink-300); } .bg-ink { background: var(--ink-200); }
+.bg-indigo { background: var(--indigo-600); } .bg-lilac { background: var(--lilac-400); }
+.t-bad { color: var(--burgundy-700); } .t-plum { color: var(--plum-900); } .t-ok { color: var(--green-400); } .t-warn { color: var(--accent-yellow); }
+
+/* alert levels */
+.lvl-rosso-bg { background: var(--burgundy-700); } .lvl-warning-bg { background: var(--accent-yellow); } .lvl-info-bg { background: var(--lilac-400); }
+.lvl-rosso-chip { background: rgba(130,15,70,.06); color: var(--burgundy-700); }
+.lvl-warning-chip { background: rgba(229,190,26,.10); color: #9a7d0a; }
+.lvl-info-chip { background: rgba(95,59,244,.06); color: var(--indigo-700); }
+
+/* status pills */
+.st-attivo { background: rgba(99,207,155,.18); color: #1f7a52; }
+.st-in-scadenza { background: rgba(229,190,26,.20); color: #8a6d06; }
+.st-in-rinnovo { background: var(--lilac-200); color: var(--indigo-700); }
+.st-scaduto { background: var(--ink-200); color: var(--ink-700); }
+.st-bloccato { background: rgba(130,15,70,.12); color: var(--burgundy-700); }
+
+/* tipologia + tier */
+.tipo-partner { background: var(--indigo-700); color: #fff; }
+.tipo-una-tantum { background: var(--ink-200); color: var(--ink-700); }
+.tier-1 { background: var(--indigo-700); color: #fff; }
+.tier-2 { background: var(--lilac-300); color: var(--plum-900); }
+.tier-3 { background: var(--ink-200); color: var(--ink-700); }
+
+/* verdetto "sei in linea" */
+.verd-ok { background: rgba(99,207,155,.16); color: #1f7a52; }
+.verd-mid { background: rgba(229,190,26,.18); color: #8a6d06; }
+.verd-bad { background: rgba(130,15,70,.08); color: var(--burgundy-700); }
+
+/* nav / tab / chip */
+.nav-on { background: var(--indigo-700); color: #fff; } .nav-off { background: transparent; color: var(--on-dark-2); }
+.tab-on { background: var(--plum-900); color: #fff; } .tab-off { background: #fff; color: var(--ink-700); box-shadow: inset 0 0 0 1px var(--ink-200); }
+.tabn-on { background: var(--lilac-400); color: var(--plum-900); } .tabn-off { background: var(--ink-200); color: var(--ink-700); }
+.chip-on { background: var(--lilac-400); color: var(--plum-900); box-shadow: 0 0 0 2px var(--lilac-400), 0 0 0 4px var(--plum-900); }
+.chip-off { background: var(--plum-700); color: var(--on-dark-2); }
+
+/* KPI tiles (exec) */
+.kpi-plum { background: var(--plum-900); color: #fff; } .kpi-plum .kpi-label { color: var(--lilac-400); }
+.kpi-indigo { background: var(--indigo-700); color: #fff; } .kpi-indigo .kpi-label { color: var(--lilac-300); }
+.kpi-cream { background: #fff; color: var(--plum-900); border: 1px solid var(--ink-200); } .kpi-cream .kpi-label { color: var(--ink-500); }
+
+.ck-dim { opacity: .55; }
+
+/* matrice grid templates */
+.mxg-pm { grid-template-columns: minmax(160px,1.5fr) minmax(188px,1.7fr) 66px minmax(118px,1fr) 94px 82px 54px minmax(160px,1.6fr); }
+.mxg-carlo { grid-template-columns: minmax(150px,1.35fr) 78px minmax(178px,1.6fr) 62px minmax(112px,1fr) 90px 78px 52px minmax(150px,1.5fr); }
+.az-red { color: var(--burgundy-700); } .az-ink { color: var(--ink-700); } .az-mut { color: var(--ink-500); }
+
+/* CS ciclo stage dots */
+.cs-done { background: var(--green-400); }
+.cs-active { background: var(--indigo-600); }
+.cs-todo { background: var(--ink-300); }
