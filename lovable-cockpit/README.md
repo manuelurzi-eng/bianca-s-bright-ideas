@@ -5,6 +5,11 @@ ruolo (Dashboard PM, Scheda Cliente, Matrice portafoglio, Controllo Carlo, Pipel
 Rinnovi Carla, Panoramica Exec, Alert Inbox) collegate **direttamente ad Airtable via
 API REST** — nessun database intermedio.
 
+Include anche il **Growth Hub** (`src/growth/`): outbound, organico, prospect e
+retention & riattivazione, raggiungibile da Carlo/Carla/Exec. Dati locali/mock per
+ora — vedi `docs/HANDOFF_PROMPT.md` nella root del repo per lo schema in corso di
+definizione.
+
 Stack: **React + Vite + Tailwind CSS**. UI in italiano, fedele al prototipo Claude Design.
 
 ---
