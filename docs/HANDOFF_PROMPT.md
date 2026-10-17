@@ -1,281 +1,294 @@
-# Prompt di handoff — LEVER PR Cockpit (per un nuovo progetto Lovable)
+# Prompt di handoff — LEVER Growth & Retention Hub (per un nuovo progetto Lovable)
 
-> Copia/incolla **tutto** questo documento come primo messaggio al nuovo Lovable.
-> È la spec integrale del cockpit gestione clienti dell'agenzia PR **Lever**.
-> Serve al nuovo agente per capire flusso, ruoli, schermate e — soprattutto —
-> **quale campo Airtable alimenta ogni cosa che si vede a schermo**.
-
----
-
-## 0) Cosa devi costruire (in sintesi)
-
-Un **cockpit interno** (web app, UI in italiano) che legge/scrive **direttamente
-su Airtable** (base `appPn2L1ushwyWlVX`) — **nessun database intermedio**.
-
-- Frontend: **React + Vite + Tailwind**.
-- Auth d'accesso: **password unica condivisa** (gate client-side, non è sicurezza reale, solo cortesia) + selettore "Chi sei?".
-- Connessione Airtable: **tramite Lovable Connector "Airtable" via gateway**
-  (`https://connector-gateway.lovable.dev/airtable/...`). Il PAT Airtable
-  **non va mai nel bundle** — sta lato server, iniettato come env var. Chiunque
-  sia invitato al progetto Lovable eredita la connessione dell'owner.
-- Chiamate: **una server function per tabella** (`createServerFn` di TanStack
-  Start) che inoltra al gateway. Nessuna fetch diretta ad `api.airtable.com` dal
-  browser.
-- Bind per **Field ID** (`fld…`), non per nome colonna: rinominare su Airtable
-  non deve rompere l'app.
+> Copia/incolla **tutto** questo documento come primo messaggio al nuovo Lovable
+> (o come brief per Claude) quando si parte con la costruzione.
+> È una **spec di lavoro**, non ancora definitiva: le sezioni marcate
+> `🟡 DA DECIDERE` vanno chiuse con l'utente prima di creare tabelle/campi
+> reali — non inventare la struttura dati.
+>
+> Questo documento **sostituisce** la vecchia spec del cockpit clienti-attivi
+> (PM, CS, checkpoint, rinnovi): quel cockpit era di fatto inutilizzato ed è
+> stato ricostruito da zero per diventare l'hub di crescita e retention
+> descritto qui sotto. I dati e le convenzioni Airtable ancora validi sono
+> riportati in Appendice.
 
 ---
 
-## 1) Flusso utente
+## 0) Perché questo documento
 
-1. **PasswordGate** → una sola password condivisa (`VITE_APP_PASSWORD`, default `lever`).
-2. **Entry / "Chi sei?"** → elenco profili letti da tabella **Team** + ruoli
-   fissi (Carlo, Carla, Exec).
-   - Nella lista principale compaiono **solo i PM che risultano `Referente diffusione` di almeno un cliente con `status = attivo`**.
-   - I PM senza clienti attivi finiscono in una lista secondaria **"Storico PM passate"** (toggle in alto), da cui si accede in sola lettura allo storico.
-3. **TopBar** con: nome/ruolo utente, indicatore ambiente (DEMO / LIVE Airtable), toast e "cambia utente".
-4. Schermata in base al ruolo:
-   - **PM** → Dashboard PM (i suoi clienti) + Scheda Cliente.
-   - **Carlo** (Head of Delivery) → Controllo Carlo + Matrice portafoglio + bucket "da assegnare".
-   - **Carla** (Renewals) → Pipeline Rinnovi.
-   - **Exec** → Panoramica aggregata sola lettura.
-   - **Tutti** → Alert Inbox.
+Il vecchio cockpit (`lovable-cockpit/`) gestiva solo i **clienti attivi** (PM,
+CS, checkpoint, rinnovi) ed era di fatto inutilizzato. Si ricostruisce da zero
+per farlo diventare l'**hub di crescita e retention** di Lever, organizzato in
+4 aree:
 
----
+1. **Outbound** — attività di prospecting proattivo (cold email, LinkedIn, call).
+2. **Organico** — lead inbound spontanei (chi scrive a Lever/Carlo senza essere
+   stato contattato prima: sito, passaparola, referral, DM).
+3. **Prospect** — la pipeline commerciale vera e propria: dove finiscono i lead
+   (sia outbound sia organici) una volta qualificati, fino a won/lost.
+4. **Retention & riattivazione** — un binario separato di "rework nel tempo",
+   con due casi distinti ma simili: i **clienti non rinnovati** (motivo,
+   valore perso, tentativi di win-back) e i **prospect da riattivare**
+   (persone arrivate fino alla call ma mai chiuse, su cui va programmato un
+   rilavoro periodico, non un semplice "lost" da dimenticare).
 
-## 2) Ruoli e permessi
-
-| Ruolo | Cosa vede | Cosa scrive |
-|---|---|---|
-| **PM** | Solo clienti dove è `Referente diffusione` | Diario contatti, checkpoint, note, campi (I) del proprio cliente |
-| **Carlo** | Tutto il portafoglio + bucket "senza referente" | Assegnazione PM, approvazione CS, tutto quello che vede |
-| **Carla** | Pipeline rinnovi (tutti i clienti in scadenza) | Campi rinnovo (`proposto_rinnovo`, `ha_rinnovato`, `valore_rinnovo`, `motivazioni_non_rinnovo`) |
-| **Exec** | Panoramica aggregata | **Nessuna scrittura** — read-only |
-
-Il filtro PM su Airtable usa il campo `referente_diffusione` (collaborator/link, field ID `fldn3Dn1YvmANdvsM`).
+Ogni area va costruita secondo lo stesso schema: **segnali → dati → tendenza →
+output**, più un livello trasversale di **tracciamento del lavoro** (task, owner,
+scadenze, alert) così che nulla sfugga senza bisogno di rincorrerlo a memoria.
 
 ---
 
-## 3) Connessione Airtable — regole d'oro
+## 1) Framework per area
+
+Per ciascuna delle 4 aree, lo stesso schema a 4 livelli + tracciamento lavoro:
+
+- **Segnali** — gli eventi che fanno muovere un record (cosa succede e quando
+  va registrato: un messaggio ricevuto, una risposta, uno stage che cambia).
+- **Dati** — i campi minimi per descrivere lo stato attuale di un record.
+- **Tendenza** — le metriche aggregate nel tempo (serie storiche, tassi,
+  medie) che servono a vedere se si sta andando meglio o peggio.
+- **Output** — le viste/schermate che espongono segnali+dati+tendenza a chi
+  deve agire o decidere.
+- **Tracciamento lavoro** — task/next-step con owner e scadenza, così ogni
+  record ha sempre un "chi fa cosa entro quando" visibile.
+
+### 1.1 Outbound
+
+| Livello | Contenuto |
+|---|---|
+| Segnali | contatto aggiunto a una sequenza, email/messaggio inviato, risposta ricevuta (positiva/negativa/silenzio), meeting fissato, lead qualificato o scartato, opt-out/bounce |
+| Dati | nome, azienda, ruolo, settore, canale (email/LinkedIn/telefono), owner Lever, sequenza/step corrente, data ultimo contatto, esito |
+| Tendenza | volume contatti/settimana, tasso di risposta, tasso di conversione lead→prospect, tempo medio di risposta, per owner e per canale |
+| Output | dashboard funnel per step, lista contatti "in attesa di risposta" ordinata per scadenza follow-up |
+| Tracciamento lavoro | task "prossimo follow-up" (data + owner + stato: da fare/fatto/saltato) |
+
+🟡 **DA DECIDERE**: le attività outbound vengono generate/arricchite con
+**Apollo** (prospecting ICP, arricchimento lead, sequenze) e poi sincronizzate
+su Airtable, oppure tutto a mano su Airtable senza integrazioni esterne per ora?
+
+### 1.2 Organico
+
+| Livello | Contenuto |
+|---|---|
+| Segnali | nuovo messaggio/richiesta ricevuta, prima risposta inviata, qualificazione (sì/no), passaggio a Prospect |
+| Dati | nome, azienda, canale di arrivo (sito/referral/passaparola/evento/DM diretto a Carlo), chi l'ha ricevuto, data arrivo, data prima risposta, note |
+| Tendenza | volume lead organici/mese, fonte più frequente, tempo medio di prima risposta, tasso di conversione in prospect |
+| Output | inbox stile "nuovi arrivi" ordinata per anzianità senza risposta (stesso pattern dell'Alert Inbox del vecchio cockpit, vedi Appendice) |
+| Tracciamento lavoro | assegnazione owner + stato (da contattare / contattato / qualificato / scartato) |
+
+### 1.3 Prospect (pipeline commerciale)
+
+| Livello | Contenuto |
+|---|---|
+| Segnali | cambio stage, proposta inviata, contratto firmato o perso, motivo di perdita |
+| Dati | azienda, referente, fonte (outbound / organico / referral), stage (lead → qualificato → proposta → negoziazione → won/lost), valore stimato, owner, data prossimo step |
+| Tendenza | valore di pipeline per stage, win rate, tempo medio di chiusura, conversion rate per fonte (outbound vs organico) |
+| Output | board a stage (kanban) o matrice, dashboard valore pipeline/forecast |
+| Tracciamento lavoro | next step per ogni prospect con data e owner, reminder sulle scadenze |
+
+### 1.4 Retention & riattivazione
+
+Due sotto-binari con la stessa logica (non chiudere e dimenticare: programmare
+un rilavoro periodico), popolati da provenienze diverse.
+
+#### 1.4a Clienti non rinnovati
+
+| Livello | Contenuto |
+|---|---|
+| Segnali | passaggio a status "non rinnovato"/churn, avvio tentativo di win-back, esito win-back |
+| Dati | storico cliente (riuso da tabella Clienti/Rinnovi esistente: `status_cliente`, `ha_rinnovato`, `motivazioni_non_rinnovo`, `valore_rinnovo` — vedi Appendice), data churn, owner win-back, stato tentativo recupero |
+| Tendenza | churn rate mensile, motivi di churn più ricorrenti, win-back rate, valore perso cumulato |
+| Output | lista clienti persi con motivo e stato win-back, trend churn nel tempo |
+| Tracciamento lavoro | task di follow-up win-back periodico (es. ogni trimestre) |
+
+#### 1.4b Prospect da riattivare
+
+Prospect che sono arrivati almeno alla call ma non si sono chiusi (né won né
+formalmente lost) — non vanno abbandonati, vanno ripresi nel tempo.
+
+| Livello | Contenuto |
+|---|---|
+| Segnali | prospect marcato "in stallo" dopo N giorni senza movimento dalla call, programmazione di un rilavoro futuro, esito del rilavoro (torna in pipeline attiva / di nuovo in stallo / abbandono definitivo) |
+| Dati | riferimento al prospect originale (stesso record o link a `PROSPECT`), data dell'ultima call/contatto, motivo dello stallo, data prevista per il prossimo rilavoro, owner |
+| Tendenza | volume prospect in stallo, tasso di riattivazione, tempo medio in stallo prima del rilavoro |
+| Output | lista "da riattivare" ordinata per data prevista di rilavoro (stesso pattern inbox dell'Organico) |
+| Tracciamento lavoro | task periodico di richiamo/rilavoro con data e owner, non un singolo follow-up ma un ciclo che si ripete finché non si chiude davvero |
+
+🟡 **DA DECIDERE**: "prospect da riattivare" è uno **status** dentro la stessa
+tabella `PROSPECT` (es. `stage = in_stallo`) o una tabella/vista separata che
+pesca dai prospect fermi da troppo tempo? La prima opzione evita duplicazione
+dati, la seconda rende più esplicito il binario di rilavoro periodico.
+
+---
+
+## 2) Alert trasversale
+
+Un'unica coda di alert che pesca da tutte le aree, non code separate:
+
+- nuovo lead organico senza risposta da > N ore
+- follow-up outbound scaduto
+- prospect fermo in uno stage da > N giorni (candidato a passare in stallo)
+- cliente non rinnovato senza tentativo di win-back programmato
+- prospect in stallo senza data di rilavoro programmata, o con data di
+  rilavoro scaduta
+
+Riusa il pattern **Alert Inbox** già disegnato nel vecchio cockpit (tabella
+`ALERT` mai creata — vedi Appendice): è lo stesso bisogno, va solo alimentato
+dalle 4 aree di questo hub invece che solo dai clienti attivi.
+
+---
+
+## 3) Modello dati — da costruire, non da inventare
+
+Nessuna di queste tabelle esiste oggi. 🟡 **DA DECIDERE con l'utente prima di
+creare qualunque campo**, seguendo le convenzioni Airtable già in uso (vedi
+Appendice §A.2):
+
+- Bind per **Field ID**, mai per nome colonna.
+- Annotazione di ogni campo come **(I)** input, **(R)** read-only/calcolato,
+  **(T)** trigger-automazione.
+- Una tabella per area è il punto di partenza naturale:
+  `OUTBOUND_ATTIVITA`, `LEAD_ORGANICO`, `PROSPECT` (con lo status di stallo/
+  riattivazione dentro, salvo diversa decisione — vedi §1.4b), e riuso di
+  `CLIENTI` + `RINNOVI` per i clienti non rinnovati (i campi utili esistono già,
+  vedi Appendice §A.3).
+- Tutte le tabelle devono poter alimentare la stessa coda `ALERT`, incluso il
+  binario di retention & riattivazione.
+
+Prima di procedere, chiarire con l'utente:
+1. Dove vivono questi dati — stessa base Airtable `appPn2L1ushwyWlVX` o base
+   separata?
+2. Outbound/Organico hanno bisogno di un campo "proviene da" per collegarsi
+   a un record Prospect quando vengono qualificati (relazione 1:1)?
+3. Serve un ruolo "owner" dedicato (growth/BD) distinto da PM/Carlo/Carla, o
+   le stesse persone coprono anche queste aree?
+
+---
+
+## 4) Ruoli e permessi
+
+Il vecchio cockpit aveva PM / Carlo / Carla / Exec (vedi Appendice §A.4).
+🟡 **DA DECIDERE**: chi è owner di ciascuna delle 4 aree?
+
+Ipotesi di default (da confermare, non da assumere definitiva):
+- **Outbound** e **Organico** → chi fa BD/new business (Carlo stesso? un
+  ruolo nuovo?).
+- **Prospect** → stesso owner di Outbound/Organico, con Carlo in supervisione.
+- **Retention & riattivazione** → Carla per i clienti non rinnovati (già owner
+  dei rinnovi); i prospect da riattivare restano con lo stesso owner che li
+  seguiva in pipeline, con Carlo in visione su entrambi i sotto-binari.
+- **Exec** → vista aggregata read-only su tutte e 4, come già previsto nel
+  vecchio cockpit per i clienti attivi.
+
+---
+
+## 5) Stack e convenzioni
+
+- React + Vite + Tailwind, TanStack Start (`createServerFn`), connessione
+  Airtable via Lovable Connector Gateway — **mai** il PAT nel bundle.
+- Una server function per tabella, cache 30s, rispetto rate limit 5 req/s.
+- Guardia di scrittura: PATCH solo su campi (I); conferma esplicita
+  (`ConfirmDialog`) su ogni campo (T).
+- Lingua italiana, stesso design system (`public/colors_and_type.css`).
+
+Dettagli di connessione e legenda campi in Appendice §A.1–A.2.
+
+---
+
+## 6) Come usare questo prompt
+
+1. Chiudere le sezioni 🟡 **DA DECIDERE** con l'utente (architettura dati,
+   fonti, ownership) — non partire a creare tabelle/campi senza risposta.
+2. Una volta chiuse, produrre per ciascuna tabella un elenco campi con nome,
+   tipo, annotazione (I)/(R)/(T), analogo alle tabelle dell'Appendice.
+3. Costruire in quest'ordine: modello dati → Alert trasversale → Outbound →
+   Organico → Prospect → Retention & riattivazione (non rinnovati + prospect
+   da riattivare) → dashboard Exec aggregata.
+4. Se qualcosa non è definito qui, chiedere prima di inventare — i field ID e
+   la distinzione I/R/T restano la cosa più importante di tutto il progetto.
+
+---
+
+## Appendice — riferimenti tecnici ancora validi dal vecchio cockpit
+
+Queste informazioni **non** descrivono più le schermate da costruire (quelle
+sono sostituite dalle 4 aree sopra), ma restano valide come regole di
+connessione Airtable e come fonte dati da riusare per la Retention.
+
+### A.1 Connessione Airtable — regole d'oro
 
 1. **Base**: `appPn2L1ushwyWlVX`.
-2. **Connector**: quello standard di Lovable chiamato "Airtable". Chiedi all'utente di collegarlo con `standard_connectors--connect` → il gateway riceve `Authorization: Bearer $LOVABLE_API_KEY` e `X-Connection-Api-Key: $AIRTABLE_API_KEY`.
-3. **Endpoint**: `https://connector-gateway.lovable.dev/airtable/v0/{baseId}/{tableId}` — sempre con `returnFieldsByFieldId=true` così le response arrivano indicizzate per field ID.
-4. **Rate limit Airtable**: max **5 req/sec per base** → coda lato server, cache in memoria 30s per le list.
+2. **Connector**: quello standard di Lovable chiamato "Airtable", collegato
+   con `standard_connectors--connect` → il gateway riceve
+   `Authorization: Bearer $LOVABLE_API_KEY` e `X-Connection-Api-Key: $AIRTABLE_API_KEY`.
+3. **Endpoint**: `https://connector-gateway.lovable.dev/airtable/v0/{baseId}/{tableId}`
+   — sempre con `returnFieldsByFieldId=true` così le response arrivano
+   indicizzate per field ID.
+4. **Rate limit Airtable**: max **5 req/sec per base** → coda lato server,
+   cache in memoria 30s per le list.
 5. **Paginazione**: gestita server-side (loop su `offset`).
-6. **Field ID mapping**: centralizzato in un unico file `fields.js` (vedi §6). **Mai** riferimenti a colonne per nome nei componenti.
-7. **Guardia scrittura**: PATCH consentito **solo** su campi Input (I). Un `READONLY_FIELD_IDS: Set<string>` blocca in partenza qualunque PATCH su formula/rollup/lookup/status.
-8. **Trigger fields (T)**: sono scrivibili ma fanno partire **automazioni Airtable** (invio mail al cliente, ecc.). Prima di ogni PATCH su un campo del set `TRIGGER_FIELD_IDS` mostra un **ConfirmDialog esplicito** ("Stai per inviare X al cliente. Confermi?").
+6. **Field ID mapping**: centralizzato in un unico file `fields.js`. **Mai**
+   riferimenti a colonne per nome nei componenti.
+7. **Guardia scrittura**: PATCH consentito **solo** su campi Input (I). Un
+   `READONLY_FIELD_IDS: Set<string>` blocca in partenza qualunque PATCH su
+   formula/rollup/lookup/status.
+8. **Trigger fields (T)**: scrivibili ma fanno partire **automazioni
+   Airtable**. Prima di ogni PATCH su un campo del set `TRIGGER_FIELD_IDS`
+   mostrare un **ConfirmDialog** esplicito.
+9. Non usare **mai** `VITE_AIRTABLE_TOKEN`: il PAT non deve finire nel bundle.
 
-### Legenda annotazioni campi
+### A.2 Legenda annotazioni campi
 
 - **(I) Input** — scrivibile liberamente.
 - **(R) Read-only** — formula / rollup / lookup / count / status → mai scrivere.
 - **(T) Trigger** — scrivibile ma fa partire un'automazione → conferma obbligatoria.
 
----
-
-## 4) Tabelle Airtable in uso
+### A.3 Tabelle esistenti riusabili (Clienti PR / Gestione Rinnovi)
 
 ```
-CLIENTI       tblCIcYFTgIXFlIbf   "Clienti PR" — la tabella cardine
-CS            tbldCTyq6gzKD8D2h   "CS Clienti PR" — comunicati stampa, uno per CS
-PUBBLICAZIONI tbldW1gJahhs1Aq2v   pubblicazioni ottenute (link a Testate)
-TESTATE       tblNn1ZhbBlsk45nu   anagrafica testate + tier
-RINNOVI       tblSTmsCRBdkW2AbJ   "Gestione Rinnovi"
-TEAM          tblP2mmYf3lTUDRSw   utenti/PM
-FORM          tbls10UqPHCtVWpra   form valutazione PR (join per email, NON linkata)
-ALERT         (da definire)       tabella non ancora creata → alert in mock finché non wired
+CLIENTI tblCIcYFTgIXFlIbf "Clienti PR"
+RINNOVI tblSTmsCRBdkW2AbJ "Gestione Rinnovi"
+TEAM    tblP2mmYf3lTUDRSw utenti/PM
 ```
 
----
+Campi `CLIENTI` utili per l'area Retention & riattivazione:
 
-## 5) Schermate — mappa "cosa vedi ↔ quale campo Airtable"
+| Campo | Field ID | Tipo |
+|---|---|---|
+| `status_cliente` | `fld6Ob0jES58EFTUN` | (R) |
+| `fine_contratto` | `fldyPtT0b0SeuZAQW` | (R) |
+| `data_per_rinnovo` | `fldmpTOs2ZjcjD9eb` | (R) |
+| `gestione_rinnovi_link` | `fldQD612YasLB9pBz` | (R, link a Rinnovi) |
+| `proposto_rinnovo` | `fldyobwAYRPFEY8wZ` | (I) |
+| `referente_rinnovo` | `fldPeegUIZcXh90zC` | (I) |
+| `ha_rinnovato` | `fldHKwN209arkkac5` | (I) |
+| `valore_rinnovo` | `fldWoGeBV3H899etm` | (I) |
+| `motivazioni_non_rinnovo` | `fld8ZMKmwirNAmTyO` | (I) |
 
-Per ogni tile / colonna / badge indico la tabella e il **field ID** che la alimenta. I campi calcolati lato client (aggregazioni, semafori) sono contrassegnati con `⚙️ derived`.
+Campi tabella `RINNOVI`: `clienti_pr` `fld5XFtvIrOkU1kJ9`, `status`
+`fldHLvsUDf5igyjpt`, `assignee` `fldeO3ppLYg3IoRSK`, `notes` `fldmM0ItyOkE9rmfK`.
 
-### 5.1 Entry — "Chi sei?"
+Campi tabella `TEAM`: `name` `fldGCMPnjYIx7EY7L`, `email` `fldj3ceNXoWE7lnVB`.
 
-- Elenco PM: da **Team** (`TEAM_FIELDS.name` = `fldGCMPnjYIx7EY7L`, `TEAM_FIELDS.email` = `fldj3ceNXoWE7lnVB`).
-- Filtro "attivo": PM presente come `referente_diffusione` (`fldn3Dn1YvmANdvsM`) su almeno un cliente con `status_cliente` (`fld6Ob0jES58EFTUN`) `= attivo`. ⚙️ derived.
-- Toggle "Storico PM passate": mostra il complemento del set precedente.
+### A.4 Ruoli del vecchio cockpit (riferimento)
 
-### 5.2 Dashboard PM
+| Ruolo | Cosa vedeva | Cosa scriveva |
+|---|---|---|
+| PM | Solo clienti dove è `Referente diffusione` | Diario contatti, checkpoint, note |
+| Carlo (Head of Delivery) | Tutto il portafoglio | Assegnazione PM, approvazione CS |
+| Carla (Renewals) | Pipeline rinnovi | Campi rinnovo |
+| Exec | Panoramica aggregata | Nessuna scrittura — read-only |
 
-Filtro base: `referente_diffusione == pm_corrente`.
+### A.5 Alert Inbox (mai completata)
 
-| Elemento UI | Sorgente |
-|---|---|
-| Nome cliente | `nome_startup` `fldN7z5DBZBV5kNYa` (R) |
-| Tipo cliente (partner/base/…) | `tipo_di_cliente` `fldAgUJkAjqhD8PYK` (R) |
-| Status (attivo / in-scadenza / bloccato / churn) | `status_cliente` `fld6Ob0jES58EFTUN` (R) |
-| Data fine contratto | `fine_contratto` `fldyPtT0b0SeuZAQW` (R) |
-| Giorni al rinnovo | ⚙️ `daysUntil(data_per_rinnovo)` → `fldmpTOs2ZjcjD9eb` (R) |
-| Pubblicazioni totali | `count_pubblicazioni` `fld8tGs80ObuwsI9K` (R) |
-| Tier 1 fatti / da accordo | `count_pubblicazioni_tier1` `fldxlixeofrAQ0X0v` (R) / `numero_tier1_da_accordo` `fldxpRMg18hKN66c7` (I) |
-| AVE totale / mensile | `ave_totale` `fldFfGnBTTmqs10KM` / `ave_media_mensile` `fldUqoNBFYWwhSmRZ` (R) |
-| Ultimo contatto (data + tipo) | `ultimo_contatto` `fld2D3ORb2iepONYO` (I) + `tipo_ultimo_contatto` `fldRm4RAgHy2VM2qM` (I) |
-| Badge "bloccato" | `cliente_bloccato` `fldJvsrGNxPMchJ71` (R) — deriva da `cliente_bloccato_check` `fldNq7yinLTgOoXlf` (I) |
-| Prossima checkpoint | ⚙️ locale (non esiste campo dedicato — vedi §7 TODO) |
+Tabella `ALERT`: **ancora da creare su Airtable**. Struttura attesa:
+`{ id, regola, livello:'rosso'|'warning'|'info', cliente/record:<id>, a:[userId…], titolo, dettaglio, step }`.
+Finché non c'è → coda vuota in LIVE, mock in DEMO.
 
-### 5.3 Scheda Cliente
+### A.6 TODO Airtable ereditati
 
-Testata:
-- Nome, settore, tipologia, contratto: campi (R) sopra.
-- Referenti: `referente_diffusione` (`fldn3Dn1YvmANdvsM`) e `referente_rinnovo` (`fldPeegUIZcXh90zC`).
-- Link Drive: `link_drive_cliente` `fldg2fvb0YlKHhjd0` (I).
-- Report strategia (allegato): `report_di_strategia` `fldtXwGDfs7txFwOB` (I, attachment).
-
-KPI:
-- Score `score` `fldSbEiIjkrvce9Ei` (I).
-- Soddisfazione `soddisfazione` `fld0c7YYX4rMHKSPy` (I).
-- Difficoltà `difficolta` `fldCeWkC0BTw2lsz0` (I).
-- CS approvati `numero_cs_approvati` `fld0efWOUY3dmQJI6` (R).
-
-Diario contatti (long text):
-- `update_sul_cliente` `fldEU77k8f9TEclb8` (I) — testo libero, il PM appende nota + data.
-- Aggiornati assieme: `ultimo_contatto` (`fld2D3ORb2iepONYO`) e `tipo_ultimo_contatto` (`fldRm4RAgHy2VM2qM`).
-
-Checkpoint plan (11 slot fissi + intervista + "ultima"):
-
-```
-intervista:       intervista_data fldUzJnWVmJfXgSr1 / bluedot fldHkXdGJoPLPimwj / transcript fldi9x05VQ9JN3a2z
-cp1..cp11:        data / bluedot / transcript — vedi src/cockpit/airtable/fields.js CLIENTI_FIELDS.cp{n}_*
-ultima_checkpoint: fldhC4NuFyzJ0JO8l (data — "apre il rinnovo") + fldVI27rcf4ksXuDv (transcript)
-```
-Tutti (I).
-
-Freeze cliente:
-- Checkbox `cliente_bloccato_check` `fldNq7yinLTgOoXlf` (I) → riflesso nel formula `cliente_bloccato` (R).
-- `motivo_freeze` e `data_riattivazione` **sono TODO Airtable** (§7).
-
-Trigger action buttons (tutti T con ConfirmDialog):
-- **Onboarding PM** → `onboarding_pm` `fldZBVGdnh4desXqA`.
-- **Invio ultima checkpoint** → `invio_ultima_checkpoint` `fldSr3q4nLBYymWTE`.
-- **Invia strategia semestrale** → `invia_strategia_semestrale` `fldQloRpcpqTrk9rQ`.
-
-Sezione CS del cliente (join `CS.riferimento_cliente` `fldHpR9svTmQaohmQ` == clienteId):
-- Codice CS `codice_cs` `fld9mQNQKBwbSMAsw` (R), tipologia `tipologia_cs` `flds7gHUiyYKzdGlz` (R).
-- Bozza `link_bozza_cs` `fldlB0ohH2zmNE40d` (I).
-- Approvazione Carlo: check `approvazione_cs` `fldvR8VqUQmenBH5M` (I) + `data_approvazione_carlo` `fldgqnJ9Za54MeFHR` (R).
-- **T** Invio al cliente: `invia_il_cs_al_cliente` `fldNLLeLv72vH1Hei` ⚠ manda davvero il CS → conferma forte.
-- Approvazione cliente: `ha_accettato_il_cs` `fldlBs4HBcCne3Agh` (I) + `data_approvazione_cliente` `fldiwPjdCLmYh3vnq`.
-- **T** Follow-up cliente: `follow_up_al_cliente` `fldlibQmMYtwIoAm7`, status `status_follow_up_cs` `fld1pTy2IuQU0npcd` (R).
-- **T** Modifiche: `invia_il_cs_modificato` `fldUuNGoQM23HYT0k`.
-- Diffusione: `diffusione_finita` `fldgdpoWkD9x1lxgm` (I).
-- **T** Rassegna stampa: `invia_rassegna_stampa` `fldLE9Ps98Ru1tJK5` + `link_rassegna_stampa` `fldQCdu8gF2riwvhF` (I).
-- KPI CS (R): `totali_pubblicazioni` `fldOr1RQTYGsYk1KT`, `totali_pubblicazioni_tier1` `fldKX9zyih4wYAu7V`, `ave_medio_cs` `fldZS548KUDX98SGq`, `time_to_approve_carlo` `fldSf4oJU8urz6eox`, `time_to_approve_cliente` `fldjn1nmdfwu6LZIt`, `time_to_first_publish_tier1` `fldlqZoBdVgE1vZ6L`, `alert_per_carlo` `fldWesc5U9Xisb30U`.
-- Pubblicazioni linkate (lookup): `lookup_nome_testata` `fldLD6GyTjyNhUaDg`, `lookup_link` `fldWzxVa5riFNKar8`, `lookup_data` `fldJ1Ep8nezSNyENw`, `lookup_tipologia` `fldSbadjipq6RqyjD`, `lookup_immagine` `fld66oJNmdQQ73eqU`.
-
-Sezione "Sogni & aspettative" (dal FORM, join per email cliente):
-- `titolo_forbes` `fldG4Y3ovn8uh1CHx`, `kpi` `fldTcjLAvlhh5kWTc`, `obiettivi_comunicazione` `fld1SJ50wOi1QrquX`, `aspettative` `fldn17eZwgHGp9oZx`.
-
-### 5.4 Matrice portafoglio (Carlo)
-
-- Assi = ⚙️ derivati da `score` e `difficolta`.
-- Bolla = un cliente; colore = `status_cliente`; size = `ave_media_mensile`.
-- Bucket laterale "da assegnare" = clienti con `referente_diffusione` vuoto.
-
-### 5.5 Controllo Carlo
-
-- Coda CS da approvare = `CS` con `approvazione_cs` = false → azione PATCH su `approvazione_cs` (I).
-- Alert per Carlo = `alert_per_carlo` `fldWesc5U9Xisb30U` (R).
-- Time-to-approve medi (R) da CS.
-
-### 5.6 Pipeline Rinnovi (Carla)
-
-Filtro: clienti con `data_per_rinnovo` (R) entro N giorni **o** `status_cliente` `in-scadenza`.
-
-| UI | Campo |
-|---|---|
-| Stato pipeline | `gestione_rinnovi_link` `fldQD612YasLB9pBz` (R, link a tabella Rinnovi) |
-| Proposta rinnovo | `proposto_rinnovo` `fldyobwAYRPFEY8wZ` (I) |
-| Referente rinnovo | `referente_rinnovo` `fldPeegUIZcXh90zC` (I) |
-| Ha rinnovato | `ha_rinnovato` `fldHKwN209arkkac5` (I) |
-| Valore rinnovo | `valore_rinnovo` `fldWoGeBV3H899etm` (I) |
-| Motivazioni non rinnovo | `motivazioni_non_rinnovo` `fld8ZMKmwirNAmTyO` (I) |
-
-Tabella **Rinnovi** (`tblSTmsCRBdkW2AbJ`): `clienti_pr` `fld5XFtvIrOkU1kJ9`, `status` `fldHLvsUDf5igyjpt`, `assignee` `fldeO3ppLYg3IoRSK`, `notes` `fldmM0ItyOkE9rmfK`.
-
-### 5.7 Panoramica Exec
-
-Solo lettura. Aggregazioni ⚙️ derived su:
-- Totale AVE (`ave_totale`), pubblicazioni (`count_pubblicazioni`), tier1 (`count_pubblicazioni_tier1`), n° clienti attivi (`status_cliente`), churn %, rinnovi in pipeline.
-- Trend rischio e Tier1/mese: **serie mock** finché non esiste una sorgente aggregata dedicata su Airtable.
-
-### 5.8 Alert Inbox
-
-- Tabella `ALERT`: **ancora da creare su Airtable**. Struttura attesa:
-  `{ id, regola, livello:'rosso'|'warning'|'info', cliente:<clientId>, a:[userId…], titolo, dettaglio, step }`.
-- Finché non c'è → coda vuota in LIVE, mock in DEMO.
-
----
-
-## 6) Struttura codice richiesta
-
-```
-src/cockpit/
-  airtable/
-    fields.js        ← UNICA fonte di verità dei field ID + Set READONLY / TRIGGER
-    client.js        ← chiama la server function; cache 30s; rate-limit rispettato
-    api.js           ← loadTeam / loadClienti / loadCS / loadPubblicazioni + mapping
-    mapping.js       ← record Airtable → oggetti "cliente" del modello UI
-  data/
-    mock.js          ← fallback demo (nessuna chiave richiesta)
-    model.js         ← buildModel({...}) — normalizzazione condivisa
-    source.js        ← switch automatico mock vs live (isConfigured())
-  logic/
-    viewmodels.js    ← buildDashboardPM, buildScheda, buildMatrice, buildPipeline, buildExec, buildAlertInbox
-  hooks/useCockpit.js
-  components/        TopBar · Toast · Entry · PasswordGate · ConfirmDialog
-  screens/           DashboardPM · SchedaCliente · Matrice · ControlloCarlo · PipelineRinnovi · Exec · AlertInbox
-  lib/css.js
-```
-
-Server-side (TanStack Start):
-
-```
-src/lib/airtable.functions.ts   ← createServerFn: listRecords(tableId, opts), patchRecord(tableId, id, fields)
-                                   Blocca PATCH su READONLY_FIELD_IDS. Legge LOVABLE_API_KEY e AIRTABLE_API_KEY da process.env dentro l'handler.
-                                   Instrada via https://connector-gateway.lovable.dev/airtable/v0/{BASE_ID}/...
-```
-
-Non usare **mai** `VITE_AIRTABLE_TOKEN`: il PAT non deve finire nel bundle.
-
----
-
-## 7) TODO Airtable (campi da creare)
-
-Il cockpit già li gestisce **solo in stato locale**, il layer di scrittura li skippa senza errori finché gli ID sono `null` in `fields.js`.
-
-- `data_invio_strategia` (I, date) — data invio strategia semestrale.
-- `data_riattivazione` (I, date) — riattivazione post-freeze.
-- `motivo_freeze` (I, text) — motivazione del blocco cliente.
-- `prossima_checkpoint` (I, date) — attualmente pianificata solo lato client.
-- Tabella **Alert** completa (vedi §5.8).
-
-Quando queste colonne vengono create su Airtable, aggiornare i `null` in `CLIENTI_FIELDS` / `ALERT_FIELDS` con il nuovo field ID: **nessun altro codice va toccato**.
-
----
-
-## 8) Convenzioni UI
-
-- Lingua **italiana**, tono professionale ma diretto.
-- Colori/typography dal file `public/colors_and_type.css` (design system Lever).
-- Ogni PATCH su Airtable → toast di conferma ("Salvato ✓") o errore ("Airtable ha risposto: …").
-- Ogni PATCH su campo T → `ConfirmDialog` con testo esplicito su cosa succederà lato cliente.
-- Fedeltà 1:1 al prototipo Claude Design — nessuna licenza estetica gratuita.
-
----
-
-## 9) Cosa il nuovo Lovable deve fare per primo
-
-1. Chiedere all'utente di **collegare il connector Airtable** (`standard_connectors--connect airtable`).
-2. Creare la struttura di file di §6 con `fields.js` **già compilato** copiando gli ID di questo documento.
-3. Creare le server function `listRecords` / `patchRecord` con la guardia read-only.
-4. Costruire in ordine: PasswordGate → Entry → Dashboard PM → Scheda Cliente → Controllo Carlo → Pipeline Rinnovi → Matrice → Exec → Alert Inbox.
-5. Verificare in preview con dati reali che almeno **Team**, **Clienti PR**, **CS**, **Pubblicazioni** vengano letti (una list per tabella, cache 30s).
-
----
-
-Fine spec. Se qualcosa non è definito qui, **chiedi prima di inventare** — la fedeltà ai field ID e alla distinzione I/R/T è la cosa più importante di tutto il progetto.
+- `prossima_checkpoint`, `data_invio_strategia`, `motivo_freeze`,
+  `data_riattivazione` — campi usati dal vecchio cockpit, oggi non più
+  rilevanti salvo si decida di tenere in vita anche la parte clienti-attivi
+  (vedi §0).
+- Tabella **Alert** completa (vedi §A.5).
