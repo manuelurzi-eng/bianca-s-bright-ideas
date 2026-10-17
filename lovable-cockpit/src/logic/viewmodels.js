@@ -467,10 +467,20 @@ export function renderVals(ctx) {
   const screen = st.screen;
 
   const roleLabel = { pm: 'Project Manager', carlo: 'Head of Delivery', carla: 'Renewals & Account', exec: 'Founder / Exec' };
-  const entryPeople = m.USERS.map((u) => ({
+
+  // Un PM è "attivo" se compare come referente_diffusione su almeno un cliente con status "attivo".
+  // I ruoli fissi (carlo/carla/exec) restano sempre nella lista attiva.
+  const activePmIds = new Set();
+  (st.data?.clienti || m.CLIENTI).forEach((c) => {
+    if (c.status !== 'attivo') return;
+    (c.referenti || []).forEach((rid) => activePmIds.add(rid));
+  });
+  const toEntry = (u) => ({
     nome: u.nome, sub: u.sub, iniz: u.iniz, ruolo: roleLabel[u.ruolo] || u.sub,
     onClick: () => act.enter(u.id),
-  }));
+  });
+  const entryPeople = m.USERS.filter((u) => u.ruolo !== 'pm' || activePmIds.has(u.id)).map(toEntry);
+  const entryArchived = m.USERS.filter((u) => u.ruolo === 'pm' && !activePmIds.has(u.id)).map(toEntry);
 
   const people = m.USERS.map((u) => ({
     iniz: u.iniz, title: u.nome + ' · ' + u.sub, onClick: () => act.setRole(u.id),
@@ -480,9 +490,9 @@ export function renderVals(ctx) {
   const myOpenAlerts = alertsFor(st, st.role, me.ruolo).filter((a) => !st.alertStatus[a.id]);
   const navDef = {
     pm: [{ key: 'dashboard', label: 'La mia dashboard', icon: 'fa-solid fa-gauge-high' }, { key: 'matrice', label: 'Matrice clienti', icon: 'fa-solid fa-table-cells' }, { key: 'alert', label: 'Alert', icon: 'fa-solid fa-bell' }],
-    carlo: [{ key: 'carlo', label: 'Controllo portafoglio', icon: 'fa-solid fa-chart-line' }, { key: 'matrice', label: 'Matrice clienti', icon: 'fa-solid fa-table-cells' }, { key: 'alert', label: 'Alert', icon: 'fa-solid fa-bell' }],
-    carla: [{ key: 'carla', label: 'Pipeline rinnovi', icon: 'fa-solid fa-arrows-rotate' }, { key: 'alert', label: 'Alert', icon: 'fa-solid fa-bell' }],
-    exec: [{ key: 'exec', label: 'Panoramica', icon: 'fa-solid fa-chart-pie' }],
+    carlo: [{ key: 'growth', label: 'Growth Hub', icon: 'fa-solid fa-rocket' }, { key: 'carlo', label: 'Controllo portafoglio', icon: 'fa-solid fa-chart-line' }, { key: 'matrice', label: 'Matrice clienti', icon: 'fa-solid fa-table-cells' }, { key: 'alert', label: 'Alert', icon: 'fa-solid fa-bell' }],
+    carla: [{ key: 'carla', label: 'Pipeline rinnovi', icon: 'fa-solid fa-arrows-rotate' }, { key: 'growth', label: 'Growth Hub', icon: 'fa-solid fa-rocket' }, { key: 'alert', label: 'Alert', icon: 'fa-solid fa-bell' }],
+    exec: [{ key: 'exec', label: 'Panoramica', icon: 'fa-solid fa-chart-pie' }, { key: 'growth', label: 'Growth Hub', icon: 'fa-solid fa-rocket' }],
   }[me.ruolo];
   const activeKey = screen === 'scheda' ? 'dashboard' : screen;
   const nav = navDef.map((n) => ({
@@ -515,7 +525,8 @@ export function renderVals(ctx) {
     isDashboardPM: screen === 'dashboard', isScheda: screen === 'scheda',
     isCarlo: screen === 'carlo', isCarla: screen === 'carla', isExec: screen === 'exec',
     isAlert: screen === 'alert', isMatrice: screen === 'matrice',
-    me, nav, people, entryPeople, toast: st.toast,
+    isGrowth: screen === 'growth', growthReadOnly: me.ruolo === 'exec',
+    me, nav, people, entryPeople, entryArchived, toast: st.toast,
     onExit: () => act.exitToEntry(),
     myAlerts, alertOpenCount: myOpenAlerts.length, alertEmpty: myAlerts.length === 0,
     scheda: buildScheda(ctx),
