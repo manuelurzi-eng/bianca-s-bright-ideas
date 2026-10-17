@@ -4,7 +4,7 @@ import { css } from '../lib/css.js';
 // Gate a password unica condivisa. NON è una barriera di sicurezza reale
 // (il confronto è client-side): serve solo a evitare accessi casuali.
 // La password vive in env VITE_APP_PASSWORD (fallback demo: "lever").
-const PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'lever';
+const PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'roadto1.5';
 
 export default function PasswordGate({ onUnlock }) {
   const [pwd, setPwd] = useState('');
