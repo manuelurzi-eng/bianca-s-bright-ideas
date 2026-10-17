@@ -13,6 +13,7 @@ import ControlloCarlo from './screens/ControlloCarlo.jsx';
 import PipelineRinnovi from './screens/PipelineRinnovi.jsx';
 import Exec from './screens/Exec.jsx';
 import AlertInbox from './screens/AlertInbox.jsx';
+import GrowthHub from './growth/GrowthHub.jsx';
 
 const wrap = css('min-height:100vh;background:var(--cream);font-family:var(--font-display);color:var(--plum-900);-webkit-font-smoothing:antialiased');
 const main = css('max-width:1320px;margin:0 auto;padding:30px 26px 80px');
@@ -47,6 +48,7 @@ export default function App() {
         {vals.isCarla ? <PipelineRinnovi vals={vals} /> : null}
         {vals.isExec ? <Exec vals={vals} /> : null}
         {vals.isAlert ? <AlertInbox vals={vals} /> : null}
+        {vals.isGrowth ? <GrowthHub readOnly={vals.growthReadOnly} /> : null}
       </main>
       <Toast toast={vals.toast} />
       <ConfirmDialog confirm={vals.confirm} onCancel={act.cancelConfirm} />
